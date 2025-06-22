@@ -3,9 +3,7 @@ package com.rkfcheung.trading.model;
 import com.rkfcheung.trading.api.NewRequest;
 import org.springframework.lang.NonNull;
 
-import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
 public record Order(
@@ -21,20 +19,12 @@ public record Order(
 
     @NonNull
     public static Order of(@NonNull UUID clientId, @NonNull NewRequest request) {
-        var orderType = request.orderType();
-        var side = switch (orderType) {
+        var side = switch (request.orderType()) {
             case BUY -> Side.BID;
             case SELL -> Side.ASK;
         };
-        var priceValue = Optional.ofNullable(request.price())
-                .map(v -> new BigDecimal(v.toString()))
-                .orElse(null);
-        var price = switch (orderType) {
-            case BUY -> new BidPrice(priceValue);
-            case SELL -> new AskPrice(priceValue);
-        };
-        boolean isMarketOrder = price.isMarketOrder();
+        var price = Price.of(side, request.price());
 
-        return new Order(UUID.randomUUID(), side, request.instrumentId(), price, request.quantity(), isMarketOrder, clientId, Instant.now());
+        return new Order(UUID.randomUUID(), side, request.instrumentId(), price, request.quantity(), price.isMarketOrder(), clientId, Instant.now());
     }
 }
