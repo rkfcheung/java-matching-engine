@@ -56,13 +56,26 @@ public class PriceLevel {
         return Optional.ofNullable(order);
     }
 
+    public boolean remove(@NonNull Order order) {
+        var queue = book.get(order.price());
+        if (queue == null) {
+            return false;
+        }
+
+        var removed = queue.removeIf(o -> o.id().equals(order.id()));
+        if (queue.isEmpty()) {
+            book.remove(order.price());
+        }
+
+        return removed;
+    }
+
+
     private boolean isInvalid(@NonNull Order order) {
         return order.side() != side;
     }
 
     private void update(@NonNull Order order) {
-        var price = order.price();
-        book.computeIfAbsent(price, _k -> new ArrayDeque<>());
-        book.get(price).add(order);
+        book.computeIfAbsent(order.price(), _k -> new ArrayDeque<>()).add(order);
     }
 }

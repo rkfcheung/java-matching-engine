@@ -3,9 +3,11 @@ package com.rkfcheung.trading.service;
 import com.rkfcheung.trading.api.NewRequest;
 import com.rkfcheung.trading.error.ValidationError;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Service
 public class ValidationService {
 
     public Optional<ValidationError> valid(@NonNull NewRequest request) {

@@ -5,6 +5,7 @@ import com.rkfcheung.trading.api.NewRequest;
 import com.rkfcheung.trading.api.NewResponse;
 import com.rkfcheung.trading.api.OrderStatus;
 import com.rkfcheung.trading.model.Order;
+import com.rkfcheung.trading.repository.OrderBook;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

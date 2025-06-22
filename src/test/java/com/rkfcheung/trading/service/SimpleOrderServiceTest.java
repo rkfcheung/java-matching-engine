@@ -7,6 +7,7 @@ import com.rkfcheung.trading.error.ValidationError;
 import com.rkfcheung.trading.error.ValidationException;
 import com.rkfcheung.trading.model.MatchResult;
 import com.rkfcheung.trading.model.Order;
+import com.rkfcheung.trading.repository.OrderBook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -103,7 +105,7 @@ class SimpleOrderServiceTest {
     @Test
     void testCancelExistingOrderThenReturnsSuccess() {
         // Given
-        when(orderBook.cancel(clientId, order.id())).thenReturn(Mono.just(order));
+        when(orderBook.cancel(clientId, order.id())).thenReturn(Mono.just(Instant.now()));
 
         // When
         var result = simpleOrderService.cancel(clientId, order.id());

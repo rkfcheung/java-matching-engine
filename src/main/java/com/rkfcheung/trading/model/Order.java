@@ -5,6 +5,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,7 +16,8 @@ public record Order(
         @Nullable Price price,
         long quantity,
         boolean isMarketOrder,
-        @NonNull UUID clientId
+        @NonNull UUID clientId,
+        @NonNull Instant createdAt
 ) {
 
     @NonNull
@@ -34,6 +36,6 @@ public record Order(
         };
         boolean isMarketOrder = price.isMarketOrder();
 
-        return new Order(UUID.randomUUID(), side, request.instrumentId(), price, request.quantity(), isMarketOrder, clientId);
+        return new Order(UUID.randomUUID(), side, request.instrumentId(), price, request.quantity(), isMarketOrder, clientId, Instant.now());
     }
 }

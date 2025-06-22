@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.lang.NonNull;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -132,16 +133,16 @@ class PriceLevelTest {
 
     @NonNull
     private Order newBid(double price) {
-        return new Order(UUID.randomUUID(), Side.BID, instrumentId, new BidPrice(BigDecimal.valueOf(price)), 10, false, clientId);
+        return new Order(UUID.randomUUID(), Side.BID, instrumentId, new BidPrice(BigDecimal.valueOf(price)), 10, false, clientId, Instant.now());
     }
 
     @NonNull
     private Order newAsk(double price) {
-        return new Order(UUID.randomUUID(), Side.ASK, instrumentId, new AskPrice(BigDecimal.valueOf(price)), 10, false, clientId);
+        return new Order(UUID.randomUUID(), Side.ASK, instrumentId, new AskPrice(BigDecimal.valueOf(price)), 10, false, clientId, Instant.now());
     }
 
     @NonNull
     private Order newMarketBid() {
-        return new Order(UUID.randomUUID(), Side.BID, instrumentId, new BidPrice(null), 10, true, clientId);
+        return new Order(UUID.randomUUID(), Side.BID, instrumentId, new BidPrice(null), 10, true, clientId, Instant.now());
     }
 }
