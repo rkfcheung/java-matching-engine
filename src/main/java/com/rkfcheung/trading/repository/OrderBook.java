@@ -23,7 +23,6 @@ public class OrderBook {
 
     public Mono<Order> add(@NonNull Order order) {
         var priceLevel = priceLevel(order.instrumentId(), order.side());
-
         return Mono.justOrEmpty(priceLevel.add(order))
                 .map(orderMapper::toEntity)
                 .flatMap(orderRepository::insert)
@@ -48,7 +47,6 @@ public class OrderBook {
             case BID -> bids;
             case ASK -> asks;
         };
-
         return orderBook.computeIfAbsent(instrumentId, _k -> new PriceLevel(side));
     }
 }

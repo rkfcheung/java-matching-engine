@@ -2,7 +2,6 @@ package com.rkfcheung.trading.model;
 
 import com.rkfcheung.trading.api.NewRequest;
 import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -13,7 +12,7 @@ public record Order(
         @NonNull UUID id,
         @NonNull Side side,
         @NonNull UUID instrumentId,
-        @Nullable Price price,
+        @NonNull Price price,
         long quantity,
         boolean isMarketOrder,
         @NonNull UUID clientId,
