@@ -29,8 +29,9 @@ class OrderControllerTest {
         var clientId = UUID.randomUUID();
         var instrumentId = UUID.randomUUID();
         var orderId = UUID.randomUUID();
+        var timestamp = Instant.now();
         var request = new NewRequest(OrderType.BUY, instrumentId, 100.5, 10);
-        var response = new NewResponse(orderId, OrderStatus.PENDING, Instant.now());
+        var response = new NewResponse(orderId, OrderStatus.PENDING, timestamp);
 
         when(orderService.add(any(), any())).thenReturn(Mono.just(response));
 
@@ -43,7 +44,8 @@ class OrderControllerTest {
                 .expectStatus().isOk()
                 .expectBody()
                 .jsonPath("$.orderId").isEqualTo(orderId.toString())
-                .jsonPath("$.orderStatus").isEqualTo("PENDING");
+                .jsonPath("$.orderStatus").isEqualTo("PENDING")
+                .jsonPath("$.timestamp").isEqualTo(timestamp.toString());
     }
 
     @Test
