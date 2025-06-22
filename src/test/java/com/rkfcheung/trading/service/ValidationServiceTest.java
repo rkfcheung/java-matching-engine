@@ -2,10 +2,12 @@ package com.rkfcheung.trading.service;
 
 import com.rkfcheung.trading.api.NewRequest;
 import com.rkfcheung.trading.api.OrderType;
-import com.rkfcheung.trading.common.Result;
 import com.rkfcheung.trading.error.ValidationError;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,80 +17,50 @@ class ValidationServiceTest {
     private final ValidationService validationService = new ValidationService();
 
     @Test
-    void validReturnsOkForValidRequest() {
-        NewRequest request = new NewRequest(
+    void testValidReturnsEmptyWithLimitOrder() {
+        var request = new NewRequest(
                 OrderType.BUY,
                 UUID.randomUUID(),
                 100.0,
                 10L
         );
 
-        Result result = validationService.valid(request);
+        var result = validationService.valid(request);
 
-        assertThat(result.isOk()).isEqualTo(true);
-        assertThat(result.isErr()).isEqualTo(false);
+        assertThat(result).isEqualTo(Optional.empty());
     }
 
     @Test
-    void validReturnsOkForValidRequestWithMarketOrder() {
-        NewRequest request = new NewRequest(
+    void testValidReturnsEmptyWithMarketOrder() {
+        var request = new NewRequest(
                 OrderType.BUY,
                 UUID.randomUUID(),
                 null,
                 10L
         );
 
-        Result result = validationService.valid(request);
+        var result = validationService.valid(request);
 
-        assertThat(result.isOk()).isEqualTo(true);
+        assertThat(result).isEmpty();
     }
 
-    @Test
-    void validReturnsErrForInvalidPrice() {
-        NewRequest request = new NewRequest(
+    @ParameterizedTest
+    @CsvSource({
+            "-1.0, 10, INVALID_PRICE",
+            "0.0, 10, INVALID_PRICE",
+            "100.0, -5, INVALID_QUANTITY",
+            "100.0, 0, INVALID_QUANTITY",
+    })
+    void testValidReturnsError(double price, long quantity, ValidationError expectedError) {
+        var request = new NewRequest(
                 OrderType.SELL,
                 UUID.randomUUID(),
-                -1.0,
-                10L
+                price,
+                quantity
         );
 
-        Result result = validationService.valid(request);
+        var result = validationService.valid(request);
 
-        assertThat(result.isOk()).isEqualTo(false);
-        assertThat(result.isErr()).isEqualTo(true);
-        assertThat(((Result.Err<?>) result).error())
-                .isEqualTo(ValidationError.INVALID_PRICE);
-    }
-
-    @Test
-    void validReturnsErrForZeroQuantity() {
-        NewRequest request = new NewRequest(
-                OrderType.BUY,
-                UUID.randomUUID(),
-                100.0,
-                0L
-        );
-
-        Result result = validationService.valid(request);
-
-        assertThat(result.isErr()).isEqualTo(true);
-        assertThat(((Result.Err<?>) result).error())
-                .isEqualTo(ValidationError.INVALID_QUANTITY);
-    }
-
-    @Test
-    void validReturnsErrForNegativeQuantity() {
-        NewRequest request = new NewRequest(
-                OrderType.SELL,
-                UUID.randomUUID(),
-                100.0,
-                -5L
-        );
-
-        Result result = validationService.valid(request);
-
-        assertThat(result.isErr()).isEqualTo(true);
-        assertThat(((Result.Err<?>) result).error())
-                .isEqualTo(ValidationError.INVALID_QUANTITY);
+        assertThat(result).isPresent().isEqualTo(Optional.of(expectedError));
     }
 }
