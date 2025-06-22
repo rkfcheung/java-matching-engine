@@ -12,7 +12,6 @@ import reactor.core.publisher.Mono;
 import java.time.Instant;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @WebFluxTest(OrderController.class)
@@ -33,7 +32,7 @@ class OrderControllerTest {
         var request = new NewRequest(OrderType.BUY, instrumentId, 100.5, 10);
         var response = new NewResponse(orderId, OrderStatus.PENDING, timestamp, null);
 
-        when(orderService.add(any(), any())).thenReturn(Mono.just(response));
+        when(orderService.add(clientId, request)).thenReturn(Mono.just(response));
 
         webTestClient.post()
                 .uri("/orders")
@@ -54,7 +53,7 @@ class OrderControllerTest {
         var orderId = UUID.randomUUID();
         var response = new CancelResponse(true, null);
 
-        when(orderService.cancel(any(), any())).thenReturn(Mono.just(response));
+        when(orderService.cancel(clientId, orderId)).thenReturn(Mono.just(response));
 
         webTestClient.put()
                 .uri("/orders/" + orderId)
