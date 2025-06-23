@@ -20,6 +20,8 @@ cd java-matching-engine
 
 ## Sample Requests
 
+### Submit a New Limit Buy Order
+
 ```bash
 http POST localhost:8080/orders \
   client-id:123e4567-e89b-12d3-a456-426614174000 \
@@ -38,6 +40,28 @@ http POST localhost:8080/orders \
   "validationError": null
 }
 ```
+
+### Submit a New Market Sell Order and Execute if Matched
+
+```bash
+http POST localhost:8080/orders \
+  client-id:123e4567-e89b-12d3-a456-426614174000 \
+  orderType=SELL \
+  instrumentId=123e4567-e89b-12d3-a456-426614174001 \
+  quantity:=10
+```
+
+```json
+{
+  "executionPrice": 100.0,
+  "orderId": "d961a9ee-1292-4475-8301-e22ee9acecec",
+  "orderStatus": "EXECUTED",
+  "timestamp": "2025-06-23T22:01:45.569216891Z",
+  "validationError": null
+}
+```
+
+### Cancel an Existing Order
 
 ```bash
 http PUT localhost:8080/orders/3c972b5b-45a6-408c-a97b-b03939f22d85 \
