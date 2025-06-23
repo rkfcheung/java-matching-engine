@@ -12,6 +12,11 @@ public record BidPrice(BigDecimal value) implements Price {
     }
 
     @Override
+    public Side side() {
+        return Side.BID;
+    }
+
+    @Override
     public int compareTo(@NonNull Price other) {
         if (!(other instanceof BidPrice)) {
             throw new IllegalArgumentException("Cannot compare BidPrice with non-BidPrice");

@@ -46,4 +46,15 @@ public class OrderRepository {
                     }
                 });
     }
+
+    public Mono<Boolean> execute(UUID orderId, double executionPrice) {
+        var query = Query.query(Criteria.where("id").is(orderId));
+        var update = Update.update("order_status", OrderStatus.EXECUTED)
+                .set("execution_price", executionPrice)
+                .set("executed_at", Instant.now());
+        return template.update(OrderEntity.class)
+                .matching(query)
+                .apply(update)
+                .map(rowsUpdated -> rowsUpdated > 0);
+    }
 }

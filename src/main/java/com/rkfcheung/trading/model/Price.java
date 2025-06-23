@@ -17,6 +17,8 @@ public sealed interface Price extends Comparable<Price> permits BidPrice, AskPri
         };
     }
 
+    Side side();
+
     BigDecimal value();
 
     default boolean isMarketOrder() {

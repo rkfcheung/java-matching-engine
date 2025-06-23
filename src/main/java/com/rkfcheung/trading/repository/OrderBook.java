@@ -42,6 +42,10 @@ public class OrderBook {
                 });
     }
 
+    public Mono<Boolean> execute(UUID orderId, double executionPrice) {
+        return orderRepository.execute(orderId, executionPrice);
+    }
+
     public PriceLevel priceLevel(@NonNull UUID instrumentId, @NonNull Side side) {
         var orderBook = switch (side) {
             case BID -> bids;

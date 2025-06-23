@@ -3,8 +3,10 @@ package com.rkfcheung.trading.service;
 import com.rkfcheung.trading.model.*;
 import com.rkfcheung.trading.repository.OrderBook;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -13,8 +15,10 @@ import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MatchingEngine {
 
+    private static final int SCALE = 8;
     private final OrderBook orderBook;
 
     public Mono<MatchResult> match(@NonNull Order incomingOrder) {
@@ -34,14 +38,17 @@ public class MatchingEngine {
                     continue;
                 }
 
-                if (restingOrder.quantity() > remaining) {
+                var restingQty = restingOrder.quantity();
+                if (restingQty > remaining) {
+                    log.info("Order {} not matched: resting order quantity {} exceeds remaining {}",
+                            incomingOrder.id(), restingQty, remaining);
                     return Mono.just(new MatchResult(incomingOrder.id(), null));
                 }
 
                 matchedOrders.add(restingOrder);
-                remaining -= restingOrder.quantity();
+                remaining -= restingQty;
                 var matchingPrice = calcMatchingPrice(incomingOrder.price(), price);
-                var cost = matchingPrice.multiply(BigDecimal.valueOf(restingOrder.quantity()));
+                var cost = matchingPrice.multiply(BigDecimal.valueOf(restingQty));
                 executionCost = executionCost.add(cost);
 
                 if (remaining == 0) {
@@ -55,20 +62,25 @@ public class MatchingEngine {
         }
 
         if (remaining > 0) {
+            log.info("Order {} not matched: insufficient liquidity, remaining quantity {}",
+                    incomingOrder.id(), remaining);
             return Mono.just(new MatchResult(incomingOrder.id(), null));
         }
 
-        for (Order matched : matchedOrders) {
-            priceLevel.remove(matched);
-        }
-
-        var executionPrice = executionCost.divide(BigDecimal.valueOf(requiredQty), RoundingMode.HALF_UP);
-
-        return Mono.just(new MatchResult(incomingOrder.id(), executionPrice));
+        var executionPrice = executionCost.divide(BigDecimal.valueOf(requiredQty), SCALE, RoundingMode.HALF_UP);
+        return Flux.fromIterable(matchedOrders)
+                .flatMap(matched -> {
+                    if (priceLevel.remove(matched)) {
+                        return orderBook.execute(matched.id(), executionPrice.doubleValue());
+                    } else {
+                        return Mono.just(false);
+                    }
+                })
+                .then(Mono.just(new MatchResult(incomingOrder.id(), executionPrice)));
     }
 
     private boolean canMatch(@NonNull Price incomingPrice, @NonNull Price restingPrice) {
-        if (incomingPrice.isMarketOrder() && restingPrice.isMarketOrder()) {
+        if (incomingPrice.isMarketOrder() && restingPrice.isMarketOrder() || incomingPrice.side() == restingPrice.side()) {
             return false;
         }
 

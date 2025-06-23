@@ -12,6 +12,11 @@ public record AskPrice(BigDecimal value) implements Price {
     }
 
     @Override
+    public Side side() {
+        return Side.ASK;
+    }
+
+    @Override
     public int compareTo(@NonNull Price other) {
         if (!(other instanceof AskPrice)) {
             throw new IllegalArgumentException("Cannot compare AskPrice with non-AskPrice");
