@@ -11,6 +11,14 @@ import java.util.Optional;
 public class ValidationService {
 
     public Optional<ValidationError> valid(@NonNull NewRequest request) {
+        if (request.orderType() == null) {
+            return Optional.of(ValidationError.MISSING_ORDER_TYPE);
+        }
+
+        if (request.instrumentId() == null) {
+            return Optional.of(ValidationError.MISSING_INSTRUMENT);
+        }
+
         if (request.price() != null && request.price() <= 0.0) {
             return Optional.of(ValidationError.INVALID_PRICE);
         }
