@@ -10,7 +10,13 @@ import java.util.UUID;
 public record NewResponse(
         @Nullable UUID orderId,
         @NonNull OrderStatus orderStatus,
+        @Nullable Double executionPrice,
         @NonNull Instant timestamp,
         @Nullable ValidationError validationError
 ) {
+
+    @NonNull
+    public static NewResponse rejected(ValidationError error) {
+        return new NewResponse(null, OrderStatus.REJECTED, null, Instant.now(), error);
+    }
 }

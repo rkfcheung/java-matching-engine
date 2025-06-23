@@ -1,9 +1,6 @@
 package com.rkfcheung.trading.integration;
 
-import com.rkfcheung.trading.api.CancelResponse;
-import com.rkfcheung.trading.api.NewRequest;
-import com.rkfcheung.trading.api.NewResponse;
-import com.rkfcheung.trading.api.OrderType;
+import com.rkfcheung.trading.api.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -105,7 +102,7 @@ public class OrderControllerE2ETest {
     }
 
     @Test
-    void cancelNonexistentOrderShouldFail() {
+    void cancelNonExistentOrderShouldFail() {
         var clientId = UUID.randomUUID();
         var fakeOrderId = UUID.randomUUID();
 
@@ -145,6 +142,8 @@ public class OrderControllerE2ETest {
 
         assertThat(buyResponse).isNotNull();
         assertThat(buyResponse.orderId()).isNotNull();
+        assertThat(buyResponse.orderStatus()).isEqualTo(OrderStatus.PENDING);
+        assertThat(buyResponse.executionPrice()).isNull();
 
         var sellResponse = webTestClient.post()
                 .uri("/orders")
@@ -158,5 +157,131 @@ public class OrderControllerE2ETest {
 
         assertThat(sellResponse).isNotNull();
         assertThat(sellResponse.orderId()).isNotNull();
+        assertThat(sellResponse.orderStatus()).isEqualTo(OrderStatus.EXECUTED);
+        assertThat(sellResponse.executionPrice()).isEqualTo(100.0);
+    }
+
+    @Test
+    void failMatchDueToInsufficientLiquidity() {
+        var instrumentId = UUID.randomUUID();
+        var buyClient = UUID.randomUUID();
+        var sellClient = UUID.randomUUID();
+
+        var sellRequest = new NewRequest(OrderType.SELL, instrumentId, 100.0, 5);
+        var sellResponse = webTestClient.post()
+                .uri("/orders")
+                .header("client-id", sellClient.toString())
+                .bodyValue(sellRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(NewResponse.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(sellResponse).isNotNull();
+        assertThat(sellResponse.orderId()).isNotNull();
+        assertThat(sellResponse.orderStatus()).isEqualTo(OrderStatus.PENDING);
+
+        var buyRequest = new NewRequest(OrderType.BUY, instrumentId, 100.0, 10);
+        var buyResponse = webTestClient.post()
+                .uri("/orders")
+                .header("client-id", buyClient.toString())
+                .bodyValue(buyRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(NewResponse.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(buyResponse).isNotNull();
+        assertThat(buyResponse.orderId()).isNotNull();
+        assertThat(buyResponse.orderStatus()).isEqualTo(OrderStatus.PENDING);
+    }
+
+    @Test
+    void failMatchDueToPartialFillRejection() {
+        var instrumentId = UUID.randomUUID();
+        var buyClient = UUID.randomUUID();
+        var sellClient = UUID.randomUUID();
+
+        var sellRequest = new NewRequest(OrderType.SELL, instrumentId, 100.0, 20);
+        var sellResponse = webTestClient.post()
+                .uri("/orders")
+                .header("client-id", sellClient.toString())
+                .bodyValue(sellRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(NewResponse.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(sellResponse).isNotNull();
+        assertThat(sellResponse.orderStatus()).isEqualTo(OrderStatus.PENDING);
+
+        var buyRequest = new NewRequest(OrderType.BUY, instrumentId, 100.0, 10);
+        var buyResponse = webTestClient.post()
+                .uri("/orders")
+                .header("client-id", buyClient.toString())
+                .bodyValue(buyRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(NewResponse.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(buyResponse).isNotNull();
+        assertThat(buyResponse.orderId()).isNotNull();
+        assertThat(buyResponse.orderStatus()).isEqualTo(OrderStatus.PENDING);
+    }
+
+    @Test
+    void rejectOrderWithInvalidQuantity() {
+        var clientId = UUID.randomUUID();
+        var instrumentId = UUID.randomUUID();
+        var invalidOrder = new NewRequest(OrderType.BUY, instrumentId, 100.0, 0);
+
+        webTestClient.post()
+                .uri("/orders")
+                .header("client-id", clientId.toString())
+                .bodyValue(invalidOrder)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void matchMarketBuyWithRestingSell() {
+        var instrumentId = UUID.randomUUID();
+        var buyClient = UUID.randomUUID();
+        var sellClient = UUID.randomUUID();
+
+        var sellRequest = new NewRequest(OrderType.SELL, instrumentId, 100.0, 10);
+        var sellResponse = webTestClient.post()
+                .uri("/orders")
+                .header("client-id", sellClient.toString())
+                .bodyValue(sellRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(NewResponse.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(sellResponse).isNotNull();
+        assertThat(sellResponse.orderStatus()).isEqualTo(OrderStatus.PENDING);
+
+        var buyRequest = new NewRequest(OrderType.BUY, instrumentId, null, 10);
+        var buyResponse = webTestClient.post()
+                .uri("/orders")
+                .header("client-id", buyClient.toString())
+                .bodyValue(buyRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(NewResponse.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(buyResponse).isNotNull();
+        assertThat(buyResponse.orderId()).isNotNull();
+        assertThat(buyResponse.orderStatus()).isEqualTo(OrderStatus.EXECUTED);
+        assertThat(buyResponse.executionPrice()).isEqualTo(100.0);
     }
 }

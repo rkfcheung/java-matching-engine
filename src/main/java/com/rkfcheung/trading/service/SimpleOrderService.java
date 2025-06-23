@@ -11,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -34,6 +36,7 @@ public class SimpleOrderService implements OrderService {
                             .map(result -> new NewResponse(
                                     order.id(),
                                     result.executionPrice() == null ? OrderStatus.PENDING : OrderStatus.EXECUTED,
+                                    Optional.ofNullable(result.executionPrice()).map(BigDecimal::doubleValue).orElse(null),
                                     Instant.now(),
                                     null
                             ));

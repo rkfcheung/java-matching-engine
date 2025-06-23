@@ -30,7 +30,7 @@ class OrderControllerTest {
         var orderId = UUID.randomUUID();
         var timestamp = Instant.now();
         var request = new NewRequest(OrderType.BUY, instrumentId, 100.5, 10);
-        var response = new NewResponse(orderId, OrderStatus.PENDING, timestamp, null);
+        var response = new NewResponse(orderId, OrderStatus.PENDING, null, timestamp, null);
 
         when(orderService.add(clientId, request)).thenReturn(Mono.just(response));
 
