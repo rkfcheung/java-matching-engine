@@ -6,6 +6,11 @@ import java.math.BigDecimal;
 
 public record BidPrice(BigDecimal value) implements Price {
 
+    @NonNull
+    public static BidPrice of(BigDecimal value) {
+        return new BidPrice(value);
+    }
+
     @Override
     public int compareTo(@NonNull Price other) {
         if (!(other instanceof BidPrice)) {

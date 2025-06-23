@@ -6,6 +6,11 @@ import java.math.BigDecimal;
 
 public record AskPrice(BigDecimal value) implements Price {
 
+    @NonNull
+    public static AskPrice of(BigDecimal value) {
+        return new AskPrice(value);
+    }
+
     @Override
     public int compareTo(@NonNull Price other) {
         if (!(other instanceof AskPrice)) {

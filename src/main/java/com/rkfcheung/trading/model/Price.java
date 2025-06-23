@@ -12,8 +12,8 @@ public sealed interface Price extends Comparable<Price> permits BidPrice, AskPri
                 .map(v -> new BigDecimal(v.toString()))
                 .orElse(null);
         return switch (side) {
-            case BID -> new BidPrice(priceValue);
-            case ASK -> new AskPrice(priceValue);
+            case BID -> BidPrice.of(priceValue);
+            case ASK -> AskPrice.of(priceValue);
         };
     }
 

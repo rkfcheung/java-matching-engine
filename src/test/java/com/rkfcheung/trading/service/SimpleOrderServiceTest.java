@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,7 +60,7 @@ class SimpleOrderServiceTest {
         when(matchingEngine.match(orderCaptor.capture()))
                 .thenAnswer(it -> {
                     Order o = it.getArgument(0);
-                    return Mono.just(new MatchResult(o.id(), request.price()));
+                    return Mono.just(new MatchResult(o.id(), new BigDecimal("100.0")));
                 });
 
         // When
