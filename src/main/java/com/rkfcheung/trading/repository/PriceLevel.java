@@ -5,15 +5,13 @@ import com.rkfcheung.trading.model.Price;
 import com.rkfcheung.trading.model.Side;
 import org.springframework.lang.NonNull;
 
-import java.util.ArrayDeque;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class PriceLevel {
 
     private final Side side;
-    private final TreeMap<Price, ArrayDeque<Order>> book;
+    private final TreeMap<Price, Queue<Order>> book;
 
     public PriceLevel(Side side) {
         this.side = side;
@@ -32,8 +30,12 @@ public class PriceLevel {
 
     public Optional<Order> best() {
         return Optional.ofNullable(book.firstEntry())
-                .map(Map.Entry::getValue)
-                .map(ArrayDeque::peek);
+                .map(Entry::getValue)
+                .map(Queue::peek);
+    }
+
+    public Set<Entry<Price, Queue<Order>>> entrySet() {
+        return book.entrySet();
     }
 
     public boolean isEmpty() {
@@ -69,7 +71,6 @@ public class PriceLevel {
 
         return removed;
     }
-
 
     private boolean isInvalid(@NonNull Order order) {
         return order.side() != side;

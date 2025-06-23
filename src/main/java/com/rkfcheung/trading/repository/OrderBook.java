@@ -42,7 +42,7 @@ public class OrderBook {
                 });
     }
 
-    private PriceLevel priceLevel(UUID instrumentId, @NonNull Side side) {
+    public PriceLevel priceLevel(@NonNull UUID instrumentId, @NonNull Side side) {
         var orderBook = switch (side) {
             case BID -> bids;
             case ASK -> asks;
