@@ -22,10 +22,11 @@ public class OrderRepository {
         return template.insert(OrderEntity.class).using(entity);
     }
 
-    public Mono<OrderEntity> find(UUID orderId, UUID clientId) {
+    public Mono<OrderEntity> findPending(UUID orderId, UUID clientId) {
         var query = Query.query(
                 Criteria.where("id").is(orderId)
                         .and("client_id").is(clientId)
+                        .and("order_status").is(OrderStatus.PENDING)
         );
         return template.selectOne(query, OrderEntity.class);
     }

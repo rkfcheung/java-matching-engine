@@ -30,7 +30,7 @@ public class OrderBook {
     }
 
     public Mono<Instant> cancel(UUID clientId, UUID orderId) {
-        return orderRepository.find(orderId, clientId)
+        return orderRepository.findPending(orderId, clientId)
                 .flatMap(entity -> {
                     var order = orderMapper.toDomain(entity);
                     var priceLevel = priceLevel(order.instrumentId(), order.side());

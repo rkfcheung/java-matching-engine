@@ -69,7 +69,7 @@ class OrderBookTest {
     void testCancelOrderSuccess() {
         // Given
         testAddOrderSuccess();
-        when(orderRepository.find(order.id(), clientId)).thenReturn(Mono.just(entity));
+        when(orderRepository.findPending(order.id(), clientId)).thenReturn(Mono.just(entity));
         when(orderMapper.toDomain(entity)).thenReturn(order);
         when(orderRepository.cancel(order.id())).thenReturn(Mono.just(Instant.now()));
 
@@ -81,14 +81,14 @@ class OrderBookTest {
                 .expectNextCount(1)
                 .verifyComplete();
 
-        verify(orderRepository).find(order.id(), clientId);
+        verify(orderRepository).findPending(order.id(), clientId);
         verify(orderRepository).cancel(order.id());
     }
 
     @Test
     void testCancelOrderNotFound() {
         // Given
-        when(orderRepository.find(order.id(), clientId)).thenReturn(Mono.just(entity));
+        when(orderRepository.findPending(order.id(), clientId)).thenReturn(Mono.just(entity));
         when(orderMapper.toDomain(entity)).thenReturn(order);
 
         // When
@@ -98,7 +98,7 @@ class OrderBookTest {
         StepVerifier.create(result)
                 .verifyComplete();
 
-        verify(orderRepository).find(order.id(), clientId);
+        verify(orderRepository).findPending(order.id(), clientId);
         verify(orderRepository, never()).cancel(any());
     }
 }
